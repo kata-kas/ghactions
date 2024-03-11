@@ -1,0 +1,40 @@
+name: "Build docker image"
+on:
+  push:
+    branches:
+    tags:
+  workflow_dispatch:
+    inputs:
+      version_to_build:
+        description: "Branch or tag to build from"
+        required: true
+        type: string
+jobs:
+  build-docker-image:
+    runs-on: ubuntu-20.04
+    outputs:
+      crk_version: ${{ steps.set-crk-version.outputs.crk_version }}
+      git_commit_sha: ${{ steps.fetch-git-sha.outputs.git_commit_sha }}
+    steps:
+      - name: "Set code version to build cw-web"
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "Build triggered by git push"
+            crk_version=${{ github.ref_name }}
+          else
+            echo "Build triggered manually"
+            crk_version=${{ inputs.version_to_build }}
+          fi
+          echo "name=crk_version::$crk_version" >> $GITHUB_OUTPUT
+        id: set-crk-version
+  notify-on-slack:
+    if: ${{ always() }}
+    needs:
+      - build-docker-image
+    runs-on: ubuntu-20.04
+    steps:
+      - name: "Test last job outputs"
+        run: |
+          echo "Last job outputs:"
+          echo "crk_version: ${{ needs.build-docker-image.outputs.crk_version }}"
+          echo "git_commit_sha: ${{ needs.build-docker-image.outputs.git_commit_sha }}"
