@@ -25,7 +25,7 @@ jobs:
             echo "Build triggered manually"
             crk_version=${{ inputs.version_to_build }}
           fi
-          echo "name=crk_version::$crk_version" >> $GITHUB_OUTPUT
+          echo "name=$crk_version" >> $GITHUB_OUTPUT
         id: set-crk-version
   notify-on-slack:
     if: ${{ always() }}
